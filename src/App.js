@@ -20,15 +20,20 @@ const list = [
   }, 
 ];
 
+const filterSearch = searchTerm => 
+  item => item.title.toLowerCase().includes(searchTerm.toLowerCase());
+
 class App extends Component {
   constructor(props) {
     super(props);
 
     this.state = {
-      list: list
+      list: list,
+      searchTerm: ''
     };
 
     this.onDismiss = this.onDismiss.bind(this);
+    this.onSearchChange = this.onSearchChange.bind(this);
   }
 
   onDismiss = (id) => {
@@ -36,30 +41,94 @@ class App extends Component {
     this.setState({ list: updatedList });
   };
 
+  // When using a handler in your element, you get access to the synthetic React event in your callback function’s signature.
+  // The event has the value of the input field in its target object, 
+  // so you can update the local state with a search term using this.setState().
+  onSearchChange = (event) => {
+    this.setState({
+      searchTerm: event.target.value
+    });
+  };
+
   render() {
+    const { searchTerm, list } = this.state;
+
     return (
       <div className="App">
-        {this.state.list.map( item => 
-          <div key={item.objectID}>
-            <span>
-              <a href={item.url}>{item.title}</a>
-            </span>
-            <span>{item.author}</span>
-            <span>{item.num_comments}</span>
-            <span>{item.points}</span>
-            <span>
-              <button
-                onClick={() => this.onDismiss(item.objectID)}
-                type="button"
-              >
-                Dismiss
-              </button>
-            </span>
-          </div>
-        )}
+        <Search 
+          onSearchChange={this.onSearchChange}
+          searcTerm={searchTerm}
+        >
+          Search
+        </Search>
+        <List 
+          list={list} 
+          searchTerm={searchTerm}
+          onDismiss={this.onDismiss}
+        />
       </div>
     );
   }
 }
 
 export default App;
+
+class Search extends Component {
+  render() {
+    const {onSearchChange, searchTerm, children} = this.props;
+
+    return (
+      <form>
+        {children}&nbsp;
+        <input 
+          type="text" 
+          onChange={onSearchChange} 
+          value={searchTerm}
+        />
+      </form>
+    );
+  }
+}
+
+class List extends Component {
+  render() {
+    const {list, searchTerm, onDismiss} = this.props;
+    
+    return (
+      <React.Fragment>
+        {list.filter(filterSearch(searchTerm)).map( item => 
+          <div key={item.objectID}>
+            <span><a href={item.url}>{item.title}</a></span>
+            <span>{item.author}</span>
+            <span>{item.num_comments}</span>
+            <span>{item.points}</span>
+            <Button 
+              onClick={() => onDismiss(item.objectID)}
+            >
+              Dismiss
+            </Button>
+          </div>
+        )}
+      </React.Fragment>
+    );
+  }
+}
+
+class Button extends Component {
+  render() {
+    // assign a default value of empty string to className, 
+    // so whenever there is no className property specified in the Button component, 
+    // the value will be an empty value instead of undefined
+    const {onClick, className = '', children} = this.props;
+    
+    return (
+      <button 
+        className={className} 
+        onClick={onClick} 
+        type="button"
+      >
+        {children}
+      </button>
+    );
+  }
+}
