@@ -25,9 +25,6 @@ const PATH_SEARCH = '/search';
 const PARAM_SEARCH = 'query=';
 const DEFAULT_QUERY = 'redux';
 
-const filterSearch = searchTerm => 
-  item => item.title.toLowerCase().includes(searchTerm.toLowerCase());
-
 class App extends Component {
   constructor(props) {
     super(props);
@@ -43,7 +40,9 @@ class App extends Component {
     };
 
     this.setSearchTopStories = this.setSearchTopStories.bind(this);
+    this.fetchSearchTopStories = this.fetchSearchTopStories.bind(this);
     this.onDismiss = this.onDismiss.bind(this);
+    this.onSearchChange = this.onSearchChange.bind(this);
     this.onSearchChange = this.onSearchChange.bind(this);
   }
 
@@ -51,13 +50,16 @@ class App extends Component {
     this.setState({ result });
   }
 
-  componentDidMount() {
-    const {searchTerm} = this.state;
-
+  fetchSearchTopStories = searchTerm => {
     fetch(`${PATH_BASE}${PATH_SEARCH}?${PARAM_SEARCH}${searchTerm}`)
-    .then( res => res.json()) // the response is transformed to a JSON data structure
+    .then( res => res.json() ) // the response is transformed to a JSON data structure
     .then( result => this.setSearchTopStories(result) )
     .catch( error => error );
+  };
+
+  componentDidMount() {
+    const { searchTerm } = this.state;
+    this.fetchSearchTopStories(searchTerm);
   }
 
   onDismiss = (id) => {
@@ -76,9 +78,15 @@ class App extends Component {
     });
   };
 
+  onSearchSubmit = (event) => {
+    const { searchTerm } = this.state;
+    this.fetchSearchTopStories(searchTerm);
+    event.preventDefault(); // prevent native browser behavior (browser will reload for a submit callback in an HTML form)
+  }
+
   render() {
     const { searchTerm, result } = this.state;
-    console.log(result);
+    // console.log(result);
     
     // if there is no result (the first time result is null), we prevent from rendering 
     // (It is allowed to return null for a component to display nothing)
@@ -92,6 +100,7 @@ class App extends Component {
           <Search 
             onSearchChange={this.onSearchChange}
             searcTerm={searchTerm}
+            onSearchSubmit={this.onSearchSubmit}
           >
             Search
           </Search>
@@ -99,7 +108,6 @@ class App extends Component {
           { result && 
             <Table 
               list={result.hits} 
-              searchTerm={searchTerm}
               onDismiss={this.onDismiss}
             />
           }
@@ -110,24 +118,27 @@ class App extends Component {
 
 export default App;
 
-const Search = ({onSearchChange, searchTerm, children}) => 
-  <form>
+const Search = ({onSearchChange, searchTerm, onSearchSubmit, children}) => 
+  <form onSubmit={onSearchSubmit}>
     {children}&nbsp;
     <input 
       type="text" 
       onChange={onSearchChange} 
       value={searchTerm}
     />
+    <button type="submit">
+      {children}
+    </button>
   </form>
 
-const Table = ({list, searchTerm, onDismiss}) => {
+const Table = ({list, onDismiss}) => {
   const largeColumn = { width: '40%' };
   const midColumn = { width: '30%' };
   const smallColumn = { width: '10%' };
 
   return (
     <div className="table">
-      {list.filter(filterSearch(searchTerm)).map( item => 
+      {list.map( item => 
         <div key={item.objectID} className="table-row">
           <span style={largeColumn}><a href={item.url}>{item.title}</a></span>
           <span style={midColumn}>{item.author}</span>
