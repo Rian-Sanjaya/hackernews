@@ -47,7 +47,8 @@ class App extends Component {
     this.state = {
       results: null,
       searchKey: '',
-      searchTerm: DEFAULT_QUERY
+      searchTerm: DEFAULT_QUERY,
+      error: null
     };
 
     this.needsToSearchTopStories = this.needsToSearchTopStories.bind(this);
@@ -93,7 +94,7 @@ class App extends Component {
     fetch(`${PATH_BASE}${PATH_SEARCH}?${PARAM_SEARCH}${searchTerm}&${PARAM_PAGE}${page}&${PARAM_HPP}${DEFAULT_HPP}`)
     .then( res => res.json() ) // the response is transformed to a JSON data structure
     .then( result => this.setSearchTopStories(result) )
-    .catch( error => error );
+    .catch( error => this.setState({ error }) );
   };
 
   componentDidMount() {
@@ -141,7 +142,7 @@ class App extends Component {
   }
 
   render() {
-    const { searchTerm, results, searchKey } = this.state;
+    const { searchTerm, results, searchKey, error } = this.state;
     console.log(results);
     
     // if there is no result (the first time result is null), we prevent from rendering 
@@ -164,21 +165,26 @@ class App extends Component {
             Search
           </Search>
         </div>
-          <React.Fragment>
-            <Table 
-              list={list} 
-              onDismiss={this.onDismiss}
-            />
-            {list.length > 0 &&
-              <div className="interactions">
-                <button
-                  onClick={() => this.fetchSearchTopStories(searchKey, page + 1)}
-                >
-                  More
-                </button>
+        <React.Fragment>
+          {error 
+            ? <div className="interactions">
+                <p>Something went wrong when fecthing data.</p>
               </div>
-            }
-          </React.Fragment>
+            : <Table 
+                list={list} 
+                onDismiss={this.onDismiss}
+              />
+          }
+          {list.length > 0 &&
+            <div className="interactions">
+              <button
+                onClick={() => this.fetchSearchTopStories(searchKey, page + 1)}
+              >
+                More
+              </button>
+            </div>
+          }
+        </React.Fragment>
       </div>
     );
   }
