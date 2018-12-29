@@ -1,44 +1,56 @@
 import React, { Component } from 'react';
 import './App.css';
 
-const list = [
-  {
-    title: 'React',
-    url: 'https://reactjs.org/',
-    author: 'Jordan Walke',
-    num_comments: 3,
-    points: 4,
-    objectID: 0,
-  }, 
-  {
-    title: 'Redux',
-    url: 'https://redux.js.org/',
-    author: 'Dan Abramov, Andrew Clark',
-    num_comments: 2,
-    points: 5,
-    objectID: 1,
-  }, 
-];
+// const list = [
+//   {
+//     title: 'React',
+//     url: 'https://reactjs.org/',
+//     author: 'Jordan Walke',
+//     num_comments: 3,
+//     points: 4,
+//     objectID: 0,
+//   }, 
+//   {
+//     title: 'Redux',
+//     url: 'https://redux.js.org/',
+//     author: 'Dan Abramov, Andrew Clark',
+//     num_comments: 2,
+//     points: 5,
+//     objectID: 1,
+//   }, 
+// ];
+
+const DEFAULT_QUERY = 'redux';
+const DEFAULT_HPP = '20';
 
 const PATH_BASE = 'http://hn.algolia.com/api/v1';
 const PATH_SEARCH = '/search';
 const PARAM_SEARCH = 'query=';
-const DEFAULT_QUERY = 'redux';
+const PARAM_PAGE = 'page=';
+const PARAM_HPP = 'hitsPerPage=';
 
 class App extends Component {
   constructor(props) {
     super(props);
 
-    // this.state = {
-    //   list: list,
-    //   searchTerm: ''
-    // };
+    // results: {
+      // react: {
+      //   hits: [{...}, {...}, {...}],
+      //   page: 2
+      // },
+      // redux: {
+      //   hits: [{...}, {...}, {...}],
+      //   page: 1
+      // }
+    // }
 
     this.state = {
-      result: null,
+      results: null,
+      searchKey: '',
       searchTerm: DEFAULT_QUERY
     };
 
+    this.needsToSearchTopStories = this.needsToSearchTopStories.bind(this);
     this.setSearchTopStories = this.setSearchTopStories.bind(this);
     this.fetchSearchTopStories = this.fetchSearchTopStories.bind(this);
     this.onDismiss = this.onDismiss.bind(this);
@@ -46,12 +58,39 @@ class App extends Component {
     this.onSearchChange = this.onSearchChange.bind(this);
   }
 
-  setSearchTopStories(result) {
-    this.setState({ result });
+  setSearchTopStories(result) { 
+    const { hits, page } = result;
+    const { searchKey, results } = this.state;
+
+    // We want to concatenate the old and new list of hits from the local state and new result object, 
+    // so we’ll adjust its functionality to add new data rather than override it.
+
+    const oldHits = results && results[searchKey] 
+      ? results[searchKey].hits 
+      : []
+
+    // merge the old hits with the new hits
+    const updatedHits = [
+      ...oldHits, 
+      ...hits
+    ];
+
+    // the searchKey is the search term. 
+    // [searchKey]: ... syntax. It is an ES6 computed property name. It helps you allocate values dynamically in an object.
+    // the ...results needs to spread all other results by searchKey in the state using the object spread operator. 
+    // Otherwise, you would lose all results that you have stored before.
+    this.setState({ 
+      results: {
+        ...results, 
+        [searchKey]: { hits: updatedHits, page: page } 
+      }
+    });
   }
 
-  fetchSearchTopStories = searchTerm => {
-    fetch(`${PATH_BASE}${PATH_SEARCH}?${PARAM_SEARCH}${searchTerm}`)
+  needsToSearchTopStories = (searchTerm) => !this.state.results[searchTerm];
+
+  fetchSearchTopStories = (searchTerm, page = 0) => {
+    fetch(`${PATH_BASE}${PATH_SEARCH}?${PARAM_SEARCH}${searchTerm}&${PARAM_PAGE}${page}&${PARAM_HPP}${DEFAULT_HPP}`)
     .then( res => res.json() ) // the response is transformed to a JSON data structure
     .then( result => this.setSearchTopStories(result) )
     .catch( error => error );
@@ -59,13 +98,22 @@ class App extends Component {
 
   componentDidMount() {
     const { searchTerm } = this.state;
+    this.setState({ searchKey: searchTerm });
     this.fetchSearchTopStories(searchTerm);
   }
 
   onDismiss = (id) => {
+    const { searchKey, results } = this.state;
+    const { hits, page } = results[searchKey];
+
     const isNotId = item => item.objectID !== id;
-    const updatedList = this.state.result.hits.filter( isNotId );
-    this.setState({ result: {...this.state.result, hits: updatedList} }); 
+    const updatedList = hits.filter( isNotId );
+    this.setState({ 
+      results: {
+        ...results, 
+        [searchKey]: { hits: updatedList, page }
+      } 
+    }); 
     // using spread operator to merge / replace hits (array of objects inside this.state.result object)
   };
 
@@ -80,19 +128,30 @@ class App extends Component {
 
   onSearchSubmit = (event) => {
     const { searchTerm } = this.state;
-    this.fetchSearchTopStories(searchTerm);
+    this.setState({ searchKey: searchTerm });
+
+    // we are implimenting a client cache
+    // if the search key is already exists in the local state results key, no need to fetch
+    // if not we fetch the data from API
+    if (this.needsToSearchTopStories(searchTerm)) {
+      this.fetchSearchTopStories(searchTerm);
+    }
+    
     event.preventDefault(); // prevent native browser behavior (browser will reload for a submit callback in an HTML form)
   }
 
   render() {
-    const { searchTerm, result } = this.state;
-    // console.log(result);
+    const { searchTerm, results, searchKey } = this.state;
+    console.log(results);
     
     // if there is no result (the first time result is null), we prevent from rendering 
     // (It is allowed to return null for a component to display nothing)
     // Once the request to the API has succeeded, 
     // the result is saved to the state and the App component will re-render with the updated state
     // if (!result) { return null }
+
+    const page = results && results[searchKey] && results[searchKey].page || 0;
+    const list = results && results[searchKey] && results[searchKey].hits || [];
 
     return (
       <div className="page">
@@ -105,12 +164,21 @@ class App extends Component {
             Search
           </Search>
         </div>
-          { result && 
+          <React.Fragment>
             <Table 
-              list={result.hits} 
+              list={list} 
               onDismiss={this.onDismiss}
             />
-          }
+            {list.length > 0 &&
+              <div className="interactions">
+                <button
+                  onClick={() => this.fetchSearchTopStories(searchKey, page + 1)}
+                >
+                  More
+                </button>
+              </div>
+            }
+          </React.Fragment>
       </div>
     );
   }
