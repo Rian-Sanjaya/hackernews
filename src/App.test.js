@@ -1,7 +1,7 @@
 import React from 'react';
 import ReactDOM from 'react-dom';
 import renderer from 'react-test-renderer';
-import App, { Search } from './App';
+import App, { Search, Button } from './App';
 
 // implement a snapshot test for the App component
 // Once you change the output of the render block in the App component, the snapshot test should fail. 
@@ -38,6 +38,23 @@ describe('Search', () => {
   test('has a valid snapshot', () => {
     const component = renderer.create(
       <Search>Search</Search>
+    );
+
+    const tree = component.toJSON();
+    expect(tree).toMatchSnapshot();
+  });
+});
+
+describe("Button", () => {
+  it('renders without crashing', () => {
+    const div = document.createElement('div');
+    ReactDOM.render(<Button>Give Me More</Button>, div);
+    ReactDOM.unmountComponentAtNode(div);
+  });
+
+  test('has a valid snapshot', () => {
+    const component = renderer.create(
+      <Button>Give Me More</Button>
     );
 
     const tree = component.toJSON();
