@@ -1,5 +1,6 @@
 import React, { Component } from 'react';
 import './App.css';
+import axios from 'axios';
 
 // const list = [
 //   {
@@ -91,10 +92,14 @@ class App extends Component {
   needsToSearchTopStories = (searchTerm) => !this.state.results[searchTerm];
 
   fetchSearchTopStories = (searchTerm, page = 0) => {
-    fetch(`${PATH_BASE}${PATH_SEARCH}?${PARAM_SEARCH}${searchTerm}&${PARAM_PAGE}${page}&${PARAM_HPP}${DEFAULT_HPP}`)
-    .then( res => res.json() ) // the response is transformed to a JSON data structure
-    .then( result => this.setSearchTopStories(result) )
-    .catch( error => this.setState({ error }) );
+    // fetch(`${PATH_BASE}${PATH_SEARCH}?${PARAM_SEARCH}${searchTerm}&${PARAM_PAGE}${page}&${PARAM_HPP}${DEFAULT_HPP}`)
+    // .then( res => res.json() ) // the response is transformed to a JSON data structure
+    // .then( result => this.setSearchTopStories(result) )
+    // .catch( error => this.setState({ error }) );
+
+    axios(`${PATH_BASE}${PATH_SEARCH}?${PARAM_SEARCH}${searchTerm}&${PARAM_PAGE}${page}&${PARAM_HPP}${DEFAULT_HPP}`)
+    .then( result => this.setSearchTopStories(result.data) )
+    .catch( error => this.setState({ error }));
   };
 
   componentDidMount() {
@@ -151,8 +156,8 @@ class App extends Component {
     // the result is saved to the state and the App component will re-render with the updated state
     // if (!result) { return null }
 
-    const page = results && results[searchKey] && results[searchKey].page || 0;
-    const list = results && results[searchKey] && results[searchKey].hits || [];
+    const page = (results && results[searchKey] && results[searchKey].page) || 0;
+    const list = (results && results[searchKey] && results[searchKey].hits) || [];
 
     return (
       <div className="page">
@@ -189,8 +194,6 @@ class App extends Component {
     );
   }
 }
-
-export default App;
 
 const Search = ({onSearchChange, searchTerm, onSearchSubmit, children}) => 
   <form onSubmit={onSearchSubmit}>
@@ -243,3 +246,6 @@ const Button = ({onClick, className = '', children}) =>
   >
     {children}
   </button>
+
+export default App;
+export { Search, Table, Button };
