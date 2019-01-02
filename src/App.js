@@ -31,6 +31,8 @@ const PARAM_PAGE = 'page=';
 const PARAM_HPP = 'hitsPerPage=';
 
 class App extends Component {
+  _isMounted = false;   // We don’t load anything before the App component is mounted
+
   constructor(props) {
     super(props);
 
@@ -49,7 +51,8 @@ class App extends Component {
       results: null,
       searchKey: '',
       searchTerm: DEFAULT_QUERY,
-      error: null
+      error: null,
+      isLoading: false,
     };
 
     this.needsToSearchTopStories = this.needsToSearchTopStories.bind(this);
@@ -85,24 +88,32 @@ class App extends Component {
       results: {
         ...results, 
         [searchKey]: { hits: updatedHits, page: page } 
-      }
+      },
+      isLoading: false
     });
   }
 
+  // we are implimenting a client cache
+  // if the search key is already exists in the local state results key, no need to fetch
+  // if not we fetch the data from API
   needsToSearchTopStories = (searchTerm) => !this.state.results[searchTerm];
 
   fetchSearchTopStories = (searchTerm, page = 0) => {
+    // we’ll show a loading indicator when a search request submits to the Hacker News API
+    this.setState({ isLoading: true });
+
     // fetch(`${PATH_BASE}${PATH_SEARCH}?${PARAM_SEARCH}${searchTerm}&${PARAM_PAGE}${page}&${PARAM_HPP}${DEFAULT_HPP}`)
     // .then( res => res.json() ) // the response is transformed to a JSON data structure
     // .then( result => this.setSearchTopStories(result) )
     // .catch( error => this.setState({ error }) );
 
     axios(`${PATH_BASE}${PATH_SEARCH}?${PARAM_SEARCH}${searchTerm}&${PARAM_PAGE}${page}&${PARAM_HPP}${DEFAULT_HPP}`)
-    .then( result => this.setSearchTopStories(result.data) )
-    .catch( error => this.setState({ error }));
+    .then( result => this._isMounted && this.setSearchTopStories(result.data) )
+    .catch( error => this._isMounted &&  this.setState({ error }));
   };
 
   componentDidMount() {
+    this._isMounted = true;
     const { searchTerm } = this.state;
     this.setState({ searchKey: searchTerm });
     this.fetchSearchTopStories(searchTerm);
@@ -147,7 +158,7 @@ class App extends Component {
   }
 
   render() {
-    const { searchTerm, results, searchKey, error } = this.state;
+    const { searchTerm, results, searchKey, error, isLoading } = this.state;
     console.log(results);
     
     // if there is no result (the first time result is null), we prevent from rendering 
@@ -180,20 +191,25 @@ class App extends Component {
                 onDismiss={this.onDismiss}
               />
           }
-          {list.length > 0 &&
-            <div className="interactions">
-              <button
-                onClick={() => this.fetchSearchTopStories(searchKey, page + 1)}
-              >
-                More
-              </button>
-            </div>
+          {/* we’ll show a loading indicator when a search request submits to the Hacker News AP */}
+          { isLoading 
+            ? <Loading /> 
+            : list.length > 0 &&
+              <div className="interactions">
+                <button
+                  onClick={() => this.fetchSearchTopStories(searchKey, page + 1)}
+                >
+                  More
+                </button>
+              </div>
           }
         </React.Fragment>
       </div>
     );
   }
 }
+
+const Loading = () => <div>Loading...</div>
 
 // const Search = ({onSearchChange, searchTerm, onSearchSubmit, children}) => 
 //   <form onSubmit={onSearchSubmit}>
@@ -209,7 +225,7 @@ class App extends Component {
 //   </form>
 
 class Search extends Component {
-  // set focus to search input field the first time when the component render
+  // set focus to search input field when the component render the first time
   componentDidMount() {
     if (this.input) {
       this.input.focus();
