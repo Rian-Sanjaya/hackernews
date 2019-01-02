@@ -192,24 +192,21 @@ class App extends Component {
               />
           }
           {/* we’ll show a loading indicator when a search request submits to the Hacker News AP */}
-          { isLoading 
-            ? <Loading /> 
-            : list.length > 0 &&
-              <div className="interactions">
-                <button
-                  onClick={() => this.fetchSearchTopStories(searchKey, page + 1)}
-                >
-                  More
-                </button>
-              </div>
+          { list.length > 0 &&
+            <div className="interactions">
+              <ButtonWithLoading
+                isLoading={isLoading}
+                onClick={() => this.fetchSearchTopStories(searchKey, page + 1)}
+              >
+                More
+              </ButtonWithLoading>
+            </div>
           }
         </React.Fragment>
       </div>
     );
   }
 }
-
-const Loading = () => <div>Loading...</div>
 
 // const Search = ({onSearchChange, searchTerm, onSearchSubmit, children}) => 
 //   <form onSubmit={onSearchSubmit}>
@@ -290,6 +287,16 @@ const Button = ({onClick, className = '', children}) =>
   >
     {children}
   </button>
+
+const Loading = () => <div>Loading...</div>
+
+// using higher order component for conditional  rendering
+const withLoading = (Component) => ({ isLoading, ...rest }) => 
+  isLoading 
+  ? <Loading />
+  : <Component { ...rest } />
+
+const ButtonWithLoading = withLoading(Button);
 
 export default App;
 export { Search, Table, Button };
