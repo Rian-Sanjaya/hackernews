@@ -195,18 +195,46 @@ class App extends Component {
   }
 }
 
-const Search = ({onSearchChange, searchTerm, onSearchSubmit, children}) => 
-  <form onSubmit={onSearchSubmit}>
-    {children}&nbsp;
-    <input 
-      type="text" 
-      onChange={onSearchChange} 
-      value={searchTerm}
-    />
-    <button type="submit">
-      {children}
-    </button>
-  </form>
+// const Search = ({onSearchChange, searchTerm, onSearchSubmit, children}) => 
+//   <form onSubmit={onSearchSubmit}>
+//     {children}&nbsp;
+//     <input 
+//       type="text" 
+//       onChange={onSearchChange} 
+//       value={searchTerm}
+//     />
+//     <button type="submit">
+//       {children}
+//     </button>
+//   </form>
+
+class Search extends Component {
+  // set focus to search input field the first time when the component render
+  componentDidMount() {
+    if (this.input) {
+      this.input.focus();
+    }
+  }
+
+  render() {
+    const { onSearchChange, searchTerm, onSearchSubmit, children } = this.props;
+
+    return (
+      <form onSubmit={onSearchSubmit}>
+        {children}&nbsp;
+        <input 
+          type="text"
+          onChange={onSearchChange}
+          value={searchTerm}
+          ref={el => this.input = el}
+        />
+        <button type="submit">
+          {children}
+        </button>
+      </form>
+    );
+  }
+}
 
 const Table = ({list, onDismiss}) => {
   const largeColumn = { width: '40%' };
