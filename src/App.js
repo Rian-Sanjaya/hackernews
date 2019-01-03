@@ -42,6 +42,38 @@ const SORTS = {
   POINTS: list => sortBy(list, 'points').reverse()
 }
 
+// hifher order function (a function that return a function)
+const updateSearchTopStoriesState = (hits, page) => 
+  prevState => {
+    const { searchKey, results } = prevState;
+
+    // We want to concatenate the old and new list of hits from the local state and new result object, 
+    // so we’ll adjust its functionality to add new data rather than override it.
+
+    const oldHits = results && results[searchKey] 
+      ? results[searchKey].hits 
+      : []
+
+    // merge the old hits with the new hits
+    const updatedHits = [
+      ...oldHits, 
+      ...hits
+    ];
+
+    // the searchKey is the search term. 
+    // [searchKey]: ... syntax. It is an ES6 computed property name. It helps you allocate values dynamically in an object.
+    // the ...results needs to spread all other results by searchKey in the state using the object spread operator. 
+    // Otherwise, you would lose all results that you have stored before.
+
+    return {
+      results: {
+        ...results, 
+        [searchKey]: { hits: updatedHits, page: page } 
+      },
+      isLoading: false
+    }
+  }
+
 class App extends Component {
   _isMounted = false;   // We don’t load anything before the App component is mounted
 
@@ -77,32 +109,11 @@ class App extends Component {
 
   setSearchTopStories(result) { 
     const { hits, page } = result;
-    const { searchKey, results } = this.state;
 
-    // We want to concatenate the old and new list of hits from the local state and new result object, 
-    // so we’ll adjust its functionality to add new data rather than override it.
-
-    const oldHits = results && results[searchKey] 
-      ? results[searchKey].hits 
-      : []
-
-    // merge the old hits with the new hits
-    const updatedHits = [
-      ...oldHits, 
-      ...hits
-    ];
-
-    // the searchKey is the search term. 
-    // [searchKey]: ... syntax. It is an ES6 computed property name. It helps you allocate values dynamically in an object.
-    // the ...results needs to spread all other results by searchKey in the state using the object spread operator. 
-    // Otherwise, you would lose all results that you have stored before.
-    this.setState({ 
-      results: {
-        ...results, 
-        [searchKey]: { hits: updatedHits, page: page } 
-      },
-      isLoading: false
-    });
+    // calling higher order function
+    // the updateSearchTopStoriesState is executed and return a function
+    // the return function is to be executed when the setState is executed
+    this.setState( updateSearchTopStoriesState(hits, page) );
   }
 
   // we are implimenting a client cache
