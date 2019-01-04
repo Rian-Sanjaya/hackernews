@@ -1,9 +1,65 @@
+* {
+  box-sizing: border-box;
+}
+
 .page { 
   margin: 20px;
+  min-width: 700px;
 }
 
 .interactions { 
   text-align: center;
+}
+
+header {
+  color: #fff;
+  display: flex;
+  width: 100%;
+}
+
+header .interaction {
+  flex: 1;
+}
+
+.logo-wrapper {
+  width: 200px;
+}
+
+.logo-wrapper a {
+  text-decoration: none;
+  color: #fff;
+  display: flex;
+}
+
+.page-header {
+  /* position: fixed; */
+  background: #FF742B;
+}
+
+.page-header-logo {
+  width: 48px;
+  height: 48px;
+  margin-right: 10px;
+  padding: 5px;
+}
+
+.page-header-title {
+  padding-top: 7px;
+  font-size: 1rem;
+}
+
+.header-form {
+  padding-top: 7px;
+  font-size: 1rem;
+}
+.header-form input {
+  width: 75%;
+}
+.header-form button {
+  color: white;
+}
+.header-form button:hover {
+  color: black;
 }
 
 .table {

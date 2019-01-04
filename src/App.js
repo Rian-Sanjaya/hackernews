@@ -3,6 +3,7 @@ import './App.css';
 import axios from 'axios';
 import { sortBy } from 'lodash'; // use sortBy function from lodash
 import classnames from 'classnames';
+import logo_hn from '../src/assets/images/logo_hn.jpg';
 
 // const list = [
 //   {
@@ -23,7 +24,7 @@ import classnames from 'classnames';
 //   }, 
 // ];
 
-const DEFAULT_QUERY = 'redux';
+const DEFAULT_QUERY = 'react';
 const DEFAULT_HPP = '20';
 
 const PATH_BASE = 'http://hn.algolia.com/api/v1';
@@ -195,15 +196,25 @@ class App extends Component {
 
     return (
       <div className="page">
-        <div className="interaction">
-          <Search 
-            onSearchChange={this.onSearchChange}
-            searcTerm={searchTerm}
-            onSearchSubmit={this.onSearchSubmit}
-          >
-            Search
-          </Search>
-        </div>
+        <header className="page-header">
+          <div className="logo-wrapper">
+            <a href="localhost:3000">
+              <img className="page-header-logo" src="/assets/images/logo_hn.png" alt="logo" />
+              <div className="page-header-title">
+                Search<br/>Hacker News
+              </div>
+            </a>
+          </div>
+          <div className="interaction">
+            <Search 
+              onSearchChange={this.onSearchChange}
+              searcTerm={searchTerm}
+              onSearchSubmit={this.onSearchSubmit}
+            >
+              Search
+            </Search>
+          </div>
+        </header>
         <React.Fragment>
           {error 
             ? <div className="interactions">
@@ -256,7 +267,7 @@ class Search extends Component {
     const { onSearchChange, searchTerm, onSearchSubmit, children } = this.props;
 
     return (
-      <form onSubmit={onSearchSubmit}>
+      <form className="header-form" onSubmit={onSearchSubmit}>
         {children}&nbsp;
         <input 
           type="text"
