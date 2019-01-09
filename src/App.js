@@ -27,7 +27,7 @@ import logo_hn from '../src/assets/images/logo_hn.jpg';
 const DEFAULT_QUERY = 'react';
 const DEFAULT_HPP = '20';
 
-const PATH_BASE = 'http://hn.algolia.com/api/v1';
+const PATH_BASE = 'https://hn.algolia.com/api/v1';
 const PATH_SEARCH = '/search';
 const PARAM_SEARCH = 'query=';
 const PARAM_PAGE = 'page=';
