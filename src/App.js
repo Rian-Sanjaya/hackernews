@@ -198,7 +198,7 @@ class App extends Component {
       <div className="page">
         <header className="page-header">
           <div className="logo-wrapper">
-            <a href="localhost:3000">
+            <a href="/">
               <img className="page-header-logo" src="/assets/images/logo_hn.png" alt="logo" />
               <div className="page-header-title">
                 Search<br/>Hacker News
