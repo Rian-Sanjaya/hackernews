@@ -3,7 +3,7 @@ import './App.css';
 import axios from 'axios';
 import { sortBy } from 'lodash'; // use sortBy function from lodash
 import classnames from 'classnames';
-import logo_hn from '../src/assets/images/logo_hn.jpg';
+// import logo_hn from '../src/assets/images/logo_hn.jpg';
 
 // const list = [
 //   {
